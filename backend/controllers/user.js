@@ -1,9 +1,10 @@
 import express from "express"
-import zod, { string } from "zod"
+import zod from "zod"
 import User from "../models/user.js"
 import jwt from "jsonwebtoken"
 import { jwt_secret } from "../config.js"
 import authMiddleware from "../middlerwares/middleware.js"
+import Account from "../models/account.js"
 
 const router = express.Router()
 
@@ -41,6 +42,10 @@ router.post('/signup',async(req,res)=>{
 
   const userID = user._id
 
+  Account.create({
+    balance:1 + Math.random() * 10000
+  })
+
   const token = jwt.sign({
     userID
   }, jwt_secret)
@@ -51,14 +56,14 @@ router.post('/signup',async(req,res)=>{
 })
 
 const signinBody = zod.object({
-    email:string().email(),
-    password:string()
+    email:zod.string().email(),
+    password:zod.string()
 })
 
 router.post("/signin",async(req,res)=>{
   const {success} = signinBody.safeParse(req.body)
   if(!success){
-    res.status(411).json({
+    return res.status(411).json({
         message:"Invalid Credentials"
     })
   }
@@ -94,12 +99,13 @@ res.status(411).json({
 router.put("/",authMiddleware,async(req,res)=>{
     const {success} = updateUserBody.safeParse(req.body)
     if(!success){
-        res.status(411).json({
+       return  res.status(411).json({
             message:"Invalid error"
         })
     }
 
-    await User.updateOne({_id:req.userID},req.body)
+    await User.updateOne({_id:req.userID},req.body,{new:true})
+    
 
     res.status(201).json({
         message:"User Update Successfully."
@@ -111,9 +117,10 @@ router.get("/bulk",async(req,res)=>{
     const filter = req.query.filter || ""
    
     const users = await User.find({
-     $or:[{
-        "$regex":filter
-     }]
+      $or: [
+      { userName: { $regex: filter, $options: "i" } },
+      { email: { $regex: filter, $options: "i" } }
+    ]
     })
 
     res.json({
