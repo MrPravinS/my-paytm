@@ -40,14 +40,15 @@ router.post('/signup',async(req,res)=>{
     password:req.body.password
   })
 
-  const userID = user._id
+  const userId = user._id
 
-  Account.create({
+  await Account.create({
+    userId:userId,
     balance:1 + Math.random() * 10000
   })
 
   const token = jwt.sign({
-    userID
+    userId
   }, jwt_secret)
   res.json({
     message:"User created successfully",
@@ -75,7 +76,7 @@ router.post("/signin",async(req,res)=>{
 
   if(user){
     const token = jwt.sign({
-        userID:user._id
+        userId:user._id
     }, jwt_secret)
   
   res.json({
@@ -104,7 +105,7 @@ router.put("/",authMiddleware,async(req,res)=>{
         })
     }
 
-    await User.updateOne({_id:req.userID},req.body,{new:true})
+    await User.updateOne({_id:req.userId},req.body,{new:true})
     
 
     res.status(201).json({
@@ -130,6 +131,11 @@ router.get("/bulk",async(req,res)=>{
             _id:user._id
         }))
     })
+})
+
+router.delete("/delete",async(req,res)=>{
+   return await User.deleteMany({})
+   
 })
 
 export default router

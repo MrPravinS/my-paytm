@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
-import { number } from "zod";
 
 
-const acountSchema = new mongoose.Schema({
+const accountSchema = new mongoose.Schema({
   userId:{
     type:mongoose.Schema.Types.ObjectId,
     ref:'User',
@@ -10,12 +9,12 @@ const acountSchema = new mongoose.Schema({
 
   },
   balance:{
-    type:number,
+    type:Number,
     required:true
   }
 
 })
 
-const Account = mongoose.model("Account",acountSchema)
+const Account = mongoose.model("Account",accountSchema)
 
 export default Account
